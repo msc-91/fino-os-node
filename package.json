@@ -1,0 +1,28 @@
+{
+  "name": "fino-os-node",
+  "version": "1.0.0",
+  "description": "**Description**:  This is a Node.js wrapper around the finoOS API. To use it, you must first register with the [finoOS API](https://os.fino.ai). The documentation of the API can be found [here](https://os.fino.ai/docs). The project is open-source and maintained by the [fino create GmbH](https://fino.ai).",
+  "main": "lib/finoOS.js",
+  "types": "lib/finoOS.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fino-os/fino-os-node.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fino-os/fino-os-node/issues"
+  },
+  "homepage": "https://github.com/fino-os/fino-os-node#readme",
+  "devDependencies": {
+    "@types/node": "^14.0.11",
+    "typescript": "^3.9.5"
+  },
+  "dependencies": {
+    "typed-rest-client": "^1.7.3"
+  }
+}
