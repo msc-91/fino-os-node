@@ -1,10 +1,12 @@
 import * as rm from 'typed-rest-client/RestClient';
-import { AuthenticationRequest, RefreshAuthenticationRequest, CreateUserRequest } from './requests';
-import { AuthenticationResponse, CreateUserResponse } from './responses';
 import HttpError from './httpError';
+import { AuthenticationData } from './models/authentication';
+import { AuthenticationRequest, RefreshAuthenticationRequest, CreateUserRequest } from './models/request';
+import { CreateUserData } from './models/user';
+import { Contract } from './models/contract';
 
 export class FinoOSClient {
-    client: rm.RestClient;
+    private client: rm.RestClient;
 
     /**
      * Creates a new finoOS client instance
@@ -18,12 +20,17 @@ export class FinoOSClient {
         });
     }
 
-    /**
-     * Authenticate this client against finoOS
-     * @param data the required credentials
-     */
-    async authenticate(data: AuthenticationRequest): Promise<AuthenticationResponse> {
-        const response = await this.client.create<AuthenticationResponse>(`/auth`, data)
+     /**
+      * Authenticate this client against finoOS
+      * @param name the name for this client
+      * @param secret the secret for this client
+      */
+    async authenticate(name: string, secret: string): Promise<AuthenticationData> {
+        const data: AuthenticationRequest = {
+            name: name,
+            secret: secret
+        }
+        const response = await this.client.create<AuthenticationData>(`/auth`, data)
         if (response.statusCode > 200) {
             const body = <any>response.result || {};
             throw new HttpError(body.message, response.statusCode)
@@ -31,12 +38,19 @@ export class FinoOSClient {
         return response.result;
     }
 
-    /**
-     * Refreshes the authentication
-     * @param data  the required credentials
-     */
-    async refreshAuthentication(data: RefreshAuthenticationRequest): Promise<AuthenticationResponse> {
-        const response = await this.client.create<AuthenticationResponse>(`/refresh-auth`, data);
+     /**
+      * Refreshes the authentication
+      * @param name the name for this client 
+      * @param secret the secret for this client
+      * @param refreshToken the refreshToken
+      */
+    async refreshAuthentication(name: string, secret: string, refreshToken: string): Promise<AuthenticationData> {
+        const data: RefreshAuthenticationRequest = {
+            name: name,
+            refreshToken: refreshToken,
+            secret: secret
+        }
+        const response = await this.client.create<AuthenticationData>(`/refresh-auth`, data);
         if (response.statusCode > 200) {
             const body = <any>response.result || {};
             throw new HttpError(body.message, response.statusCode)
@@ -49,8 +63,8 @@ export class FinoOSClient {
      * @param data
      * @param accessToken the authentication token
      */
-    async createUser(data: CreateUserRequest, accessToken: string): Promise<CreateUserResponse> {
-        const response = await this.client.create<CreateUserResponse>(`/users`, data, {
+    async createUser(data: CreateUserRequest, accessToken: string): Promise<CreateUserData> {
+        const response = await this.client.create<CreateUserData>(`/users`, data, {
             additionalHeaders: {
                 Authorization: accessToken
             }
@@ -69,6 +83,60 @@ export class FinoOSClient {
      */
     async deleteUser(userID: string, accessToken: string): Promise<void> {
         const response = await this.client.del(`/users/${userID}`, {
+            additionalHeaders: {
+                Authorization: accessToken
+            }
+        });
+        if (response.statusCode > 200) {
+            const body = <any>response.result || {};
+            throw new HttpError(body.message, response.statusCode)
+        }
+    }
+
+    /**
+     * Fetches all contracts for the user
+     * @param accessToken the authentication token
+     */
+    async fetchContracts(accessToken: string): Promise<Contract[]> {
+        const response = await this.client.get<Contract[]>(`/contracts`, {
+            additionalHeaders: {
+                Authorization: accessToken
+            }
+        });
+        if (response.statusCode > 200) {
+            const body = <any>response.result || {};
+            throw new HttpError(body.message, response.statusCode)
+        }
+        return response.result;
+    }
+
+    /**
+     * Adds a custom contract
+     * @param userID the id of the user
+     * @param accessToken the authentication token
+     * @param contract the custom contract
+     */
+    async addContract(userID: string, accessToken: string, contract: Contract): Promise<void> {
+        const response = await this.client.create(`/users/${userID}/contracts`, contract, {
+            additionalHeaders: {
+                Authorization: accessToken
+            }
+        });
+        if (response.statusCode > 200) {
+            const body = <any>response.result || {};
+            throw new HttpError(body.message, response.statusCode)
+        }
+    }
+
+    /**
+     * Updates an existing contract
+     * @param userID the id of the user
+     * @param contractID the id of the contract to update
+     * @param accessToken the authentication token
+     * @param contract the data to be updated.
+     */
+    async updateContract(userID: string, contractID: string, accessToken: string, contract: Contract): Promise<void> {
+        const response = await this.client.replace(`/users/${userID}/contracts/${contractID}`, contract, {
             additionalHeaders: {
                 Authorization: accessToken
             }

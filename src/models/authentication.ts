@@ -1,10 +1,6 @@
-export interface AuthenticationResponse {
+export interface AuthenticationData {
     accessToken: string;
     expiresIn: number;
     refreshExpiresIn: number;
     refreshToken: string;
-}
-
-export interface CreateUserResponse {
-    id: string;
 }
